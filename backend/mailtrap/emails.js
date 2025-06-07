@@ -1,51 +1,82 @@
-import { mailtrapClient, sender } from "./mailtrap.config.js";
-import { PASSWORD_RESET_REQUEST_TEMPLATE, VERIFICATION_EMAIL_TEMPLATE } from "./emailTemplates.js"
+import { resendClient, sender } from "./mailtrap.config.js";
+import {
+  PASSWORD_RESET_REQUEST_TEMPLATE,
+  PASSWORD_RESET_SUCCESS_TEMPLATE,
+  VERIFICATION_EMAIL_TEMPLATE,
+  WELCOME_EMAIL,
+} from "./emailTemplates.js";
 
-export const sendVerificationEmail = async (email, vertificationToken) => {
-    const recipient = [{ email }]
+export const sendVerificationEmail = async (email, verificationToken) => {
+  const { data, error } = await resendClient.emails.send({
+    from: `${sender.name} <${sender.email}>`,
+    to: [email],
+    subject: "Verify your email",
+    html: VERIFICATION_EMAIL_TEMPLATE.replace(
+      "{verificationCode}",
+      verificationToken
+    ),
+    tags: [{ name: "category", value: "email_verification" }],
+  });
 
-    try {
-        const response = mailtrapClient.send({
-            from: sender,
-            to: recipient,
-            subject: "verify your email",
-            html: VERIFICATION_EMAIL_TEMPLATE.replace("{verificationCode}", vertificationToken),
-            category: "Email vertification"
-        });
-        console.log("Email sent succesfully", response);
-    } catch (error) {
-        console.log('the error is ', error);
-        throw new Error(`the error is ${error}`)
-    }
+  if (error) {
+    // Log everything you have – name, message, stack, cause …
+    console.error("Resend returned an error:", error);
+    throw new Error(error.message);
+  }
+
+  console.log("✅ Verification e-mail queued with id:", data.id);
 };
 
+
 export const SendWelcomeEmail = async (email, name) => {
-	const recipient = [{ email }];
+  const recipient = [email];
 
-	try {
-		const response = await mailtrapClient.send({
-			from: sender,
-			to: recipient,
-			template_uuid: "679ece65-e902-4348-ae13-b77218a69e8f",
-			template_variables: {
-				company_info_name: "Auth Company",
-				name: name,
-			},
-		});
-        console.log("Email sent succesfully", response);
-    } catch (error) {
-        console.log('the error is ', error);
-        throw new Error(`the error is ${error}`)
-    }
-}
+  try {
+    const response = await resendClient.emails.send({
+      from: `${sender.name} <${sender.email}>`,
+      to: recipient,
+      subject: "Verify your email",
+      html: WELCOME_EMAIL,
+      tags: [{ name: "category", value: "send_Welcome" }],
+    });
 
-export const sendPasswordResetEmail = async (email, resetUrl) => {
-    const recipient = [{ email }];
-    const response = await mailtrapClient.send({
-         from: sender,
-        to: recipient,
-        subject: "forget password",
-        html: PASSWORD_RESET_REQUEST_TEMPLATE.replace("{resetURL}", resetUrl),
-        category: "Reset password link"
-    })
+    console.log("Welcome email sent successfully", response);
+  } catch (error) {
+    console.log("The error is", error);
+    throw new Error(`The error is ${error.message}`);
+  }
+};
+
+export const sendForgetEmail = async (email, resetUrl) => {
+  const recipient = [email];
+
+  try {
+    const response = await resendClient.emails.send({
+      from: `${sender.name} <${sender.email}>`,
+      to: recipient,
+      subject: "Forgot password",
+      html: PASSWORD_RESET_REQUEST_TEMPLATE.replace("{resetURL}", resetUrl),
+      tags: [{ name: "category", value: "Reset_Password_link" }],
+    });
+
+    console.log("Password reset email sent successfully", response);
+  } catch (error) {
+    console.log("The error is", error);
+    throw new Error(`The error is ${error.message}`);
+  }
+};
+
+export const sendResetSuccessEmail = async (email) => {
+  try {
+    const response = await resendClient.emails.send({
+      from: `${sender.name} <${sender.email}>`,
+      to: email,
+      subject: "Reset password Password Successful",
+      html: PASSWORD_RESET_SUCCESS_TEMPLATE,
+      tags: [{ name: "category", value: "Reset_Password_succes" }],
+    });
+    console.log("reset email sent successfully", response);
+  } catch (error) {
+    res.status(500).json({message: error.message});
+  }
 }

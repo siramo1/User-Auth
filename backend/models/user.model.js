@@ -23,6 +23,7 @@ const userSchema = mongoose.Schema(
 			type: Boolean,
 			default: false,
 		},
+		isBoss: {type: Boolean, default: false},
 		resetPasswordToken: String,
 		resetPasswordExpiresAt: Date,
 		verificationToken: String,

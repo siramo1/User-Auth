@@ -1,13 +1,17 @@
-import{ MailtrapClient} from "mailtrap";
+// emailClient.js
+import { Resend } from 'resend';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-const Token = process.env.MAILTRAP_TOKEN;
 
-export const mailtrapClient = new MailtrapClient({ token: Token });
+const resendApiKey = process.env.RESEND_API_KEY;
+
+
+export const resendClient = new Resend(resendApiKey);
+
 
 export const sender = {
-  email: "hello@demomailtrap.com",
-  name: "bilal",
+  email: 'onboarding@resend.dev', 
+  name:  'Bilal',
 };
